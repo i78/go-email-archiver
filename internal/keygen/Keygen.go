@@ -16,12 +16,12 @@ type Keygen struct {
 
 const DefaultKeylength = 4096
 
-func (k *Keygen) CreateKey(keyName string) (key *models.Key, err error) {
+func (k *Keygen) CreateKey(keyName string, rotate bool) (key *models.Key, err error) {
 	log.WithFields(log.Fields{
 		"keyName": keyName,
 	}).Debug("Generating key")
 
-	if k.keyRepository.Contains(keyName) {
+	if !rotate && k.keyRepository.Contains(keyName) {
 		return nil, KeyAlreadyExists
 	}
 

@@ -9,13 +9,13 @@ import (
 
 type GenerateKeyCommand struct {
 	KeyName string
-	rotate  bool
+	Rotate  bool
 }
 
 func (sv *GenerateKeyCommand) Run(ctx *kong.Context) error {
 	log.WithFields(log.Fields{
 		"keyName": sv.KeyName,
-		"rotate":  sv.rotate,
+		"Rotate":  sv.Rotate,
 	}).Info("Starting")
 
 	repo, repoErr := repository.Open()
@@ -23,7 +23,7 @@ func (sv *GenerateKeyCommand) Run(ctx *kong.Context) error {
 	if repoErr != nil {
 		log.WithFields(log.Fields{
 			"keyName": sv.KeyName,
-			"rotate":  sv.rotate,
+			"Rotate":  sv.Rotate,
 			"error":   repoErr,
 		}).Fatal("Unable to open repository.")
 		return repoErr
@@ -32,18 +32,18 @@ func (sv *GenerateKeyCommand) Run(ctx *kong.Context) error {
 	keyRepo := repository.NewFileKeyRepository(*repo)
 	keygen, _ := keygen2.NewKeygen(keyRepo)
 
-	key, keygenError := keygen.CreateKey(sv.KeyName)
+	key, keygenError := keygen.CreateKey(sv.KeyName, sv.Rotate)
 	if keygenError != nil {
 		log.WithFields(log.Fields{
 			"keyName": sv.KeyName,
-			"rotate":  sv.rotate,
+			"Rotate":  sv.Rotate,
 			"error":   keygenError,
 		}).Fatal("Unable to create key.")
 		return repoErr
 	} else {
 		log.WithFields(log.Fields{
 			"keyName":  sv.KeyName,
-			"rotate":   sv.rotate,
+			"Rotate":   sv.Rotate,
 			"revision": key.Revision.String(),
 		}).Info("Created new key.")
 	}
@@ -52,7 +52,7 @@ func (sv *GenerateKeyCommand) Run(ctx *kong.Context) error {
 	if errPersist != nil {
 		log.WithFields(log.Fields{
 			"keyName": sv.KeyName,
-			"rotate":  sv.rotate,
+			"Rotate":  sv.Rotate,
 			"error":   errPersist,
 		}).Fatal("Unable to persist key.")
 		return repoErr

@@ -21,7 +21,7 @@ func TestNewKeyGeneration(t *testing.T) {
 
 			keygen, _ := NewKeygen(mockRepository)
 
-			_, err := keygen.CreateKey(mockKeyName)
+			_, err := keygen.CreateKey(mockKeyName, false)
 
 			assert.Error(t, err)
 		})
@@ -33,7 +33,7 @@ func TestNewKeyGeneration(t *testing.T) {
 
 			keygen, _ := NewKeygen(mockRepository)
 
-			_, err := keygen.CreateKey(mockKeyName)
+			_, err := keygen.CreateKey(mockKeyName, false)
 
 			assert.NoError(t, err)
 		})
