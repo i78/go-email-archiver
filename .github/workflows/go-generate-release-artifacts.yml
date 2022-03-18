@@ -9,17 +9,23 @@ on:
 
 # workflow tasks
 jobs:
-  generate:
-    name: Generate cross-platform builds
+   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-      - name: Generate build files
-        uses: thatisuday/go-cross-build@v1
-        with:
-            platforms: 'linux/amd64, darwin/amd64, windows/amd64'
-            package: ''
-            name: 'email-archiver-cli'
-            compress: 'true'
-            dest: 'dist'
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+        
+    - name: Prepare
+      run: mkdir dist
+        
+    - name: Build Linux binary
+      run: go build -o dist/email-archiver
+      
+    - name: Build Windows x86 binary
+      run: go build -o dist/email-archiver.exe
+
+
