@@ -1,7 +1,7 @@
 package cli
 
 import (
-	keygen2 "email-archiver-cli/internal/keygen"
+	"email-archiver-cli/internal/keyService"
 	"email-archiver-cli/internal/repository"
 	"github.com/alecthomas/kong"
 	log "github.com/sirupsen/logrus"
@@ -13,50 +13,34 @@ type GenerateKeyCommand struct {
 }
 
 func (sv *GenerateKeyCommand) Run(ctx *kong.Context) error {
-	log.WithFields(log.Fields{
-		"keyName": sv.KeyName,
-		"Rotate":  sv.Rotate,
-	}).Info("Starting")
+	sv.log(log.DebugLevel, "Generating new Key")
 
-	repo, repoErr := repository.Open()
-
-	if repoErr != nil {
-		log.WithFields(log.Fields{
-			"keyName": sv.KeyName,
-			"Rotate":  sv.Rotate,
-			"error":   repoErr,
-		}).Fatal("Unable to open repository.")
-		return repoErr
-	}
-
-	keyRepo := repository.NewFileKeyRepository(*repo)
-	keygen, _ := keygen2.NewKeygen(keyRepo)
-
-	key, keygenError := keygen.CreateKey(sv.KeyName, sv.Rotate)
-	if keygenError != nil {
-		log.WithFields(log.Fields{
-			"keyName": sv.KeyName,
-			"Rotate":  sv.Rotate,
-			"error":   keygenError,
-		}).Fatal("Unable to create key.")
-		return repoErr
+	if keyService, err := BuildKeyService(); err != nil {
+		sv.log(log.FatalLevel, "Unable to open key repository.")
+		return err
 	} else {
-		log.WithFields(log.Fields{
-			"keyName":  sv.KeyName,
-			"Rotate":   sv.Rotate,
-			"revision": key.Revision.String(),
-		}).Info("Created new key.")
-	}
-
-	errPersist := keyRepo.Persist(sv.KeyName, key)
-	if errPersist != nil {
-		log.WithFields(log.Fields{
-			"keyName": sv.KeyName,
-			"Rotate":  sv.Rotate,
-			"error":   errPersist,
-		}).Fatal("Unable to persist key.")
-		return repoErr
+		if key, keygenError := keyService.CreateKey(sv.KeyName, sv.Rotate); keygenError != nil {
+			sv.log(log.FatalLevel, "Unable to create key.")
+			return keygenError
+		} else {
+			sv.log(log.InfoLevel, "New key created", key.Revision.String())
+		}
 	}
 
 	return nil
+}
+
+func (sv *GenerateKeyCommand) log(level log.Level, message ...string) {
+	log.WithFields(log.Fields{
+		"keyName": sv.KeyName,
+		"Rotate":  sv.Rotate,
+	}).Log(level, message)
+}
+
+func BuildKeyService() (KeyService, error) {
+	repo, _ := repository.Open()
+	keyRepo := repository.NewFileKeyRepository(*repo)
+	keygen, err := keyService.NewKeyService(keyRepo)
+
+	return keygen, err
 }

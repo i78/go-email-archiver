@@ -1,68 +1,69 @@
 package repository
 
 import (
+	"email-archiver-cli/internal/filesystem"
+	"email-archiver-cli/internal/util"
 	"errors"
 	"os"
+	"strings"
 )
 
 const folderPrefix = "mailArchive"
 const keySubfolderPrefix = "keys"
+const mailSubfolderPrefix = "maildir"
+const configSubfolderPrefix = "config"
 
-type MailRepository struct {
+type Repository struct {
+	filesystem Filesystem
 }
 
-func Open() (repo *MailRepository, err error) {
+func Open() (repo *Repository, err error) {
 	if repoExistsInWorkingDirectory() {
-		repo = &MailRepository{}
+		repo = &Repository{
+			filesystem: filesystem.LocalFilesystem{},
+		}
 	} else {
-		err = RepositoryNotFoundError
+		err = NotFoundError
 	}
 	return
 }
 
-func InitRepository() (repo *MailRepository, err error) {
-	return runIfRepoDoesNotExist(createRepository)
+func InitRepository() (repo *Repository, err error) {
+	return whenRepositoryDoesNotExist(createRepository)
 }
 
-func runIfRepoDoesNotExist(fn func() (repo *MailRepository, err error)) (repo *MailRepository, err error) {
+func whenRepositoryDoesNotExist(fn func() (repo *Repository, err error)) (repo *Repository, err error) {
 	if repoExistsInWorkingDirectory() {
-		err = RepositoryAlreadyExistsError
+		err = AlreadyExistsError
 		return
 	}
 	return fn()
 }
 
 func repoExistsInWorkingDirectory() bool {
-	if _, statError := os.Stat(folderPrefix); !os.IsNotExist(statError) {
-		return true
-	}
-	return false
+	return filesystem.Exists(folderPrefix)
 }
 
-func (r *MailRepository) FolderExists(path string) bool {
-	if _, statError := os.Stat(path); !os.IsNotExist(statError) {
-		return true
-	}
-	return false
+func createFilename(tokens ...string) string {
+	sanitized := util.Sanitize(tokens)
+	return folderPrefix + "/" + strings.Join(sanitized, "/")
 }
 
-func createRepository() (repo *MailRepository, err error) {
+func createRepository() (repo *Repository, err error) {
 	folders := []string{
-		folderPrefix,
-		folderPrefix + "/" + keySubfolderPrefix,
-		folderPrefix + "/maildir",
-		folderPrefix + "/index",
+		createFilename(),
+		createFilename(keySubfolderPrefix),
+		createFilename(configSubfolderPrefix),
+		createFilename("/maildir"),
+		createFilename("/index"),
 	}
 
-	for _, folder := range folders {
-		err := os.Mkdir(folder, 0700)
-		if err != nil {
-			return nil, err
-		}
-	}
+	util.ForEach(folders, func(f string) {
+		err = os.Mkdir(f, 0700)
+	})
 
 	return
 }
 
-var RepositoryAlreadyExistsError = errors.New("Repository already exists. No need to create a new one")
-var RepositoryNotFoundError = errors.New("No Repository found. You might want to create one")
+var AlreadyExistsError = errors.New("repository already exists. No need to create a new one")
+var NotFoundError = errors.New("no Repository found. You might want to create one")

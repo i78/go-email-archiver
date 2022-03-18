@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package emailarchiver.config;
+option go_package = "emailarchver/config";
+
+
+message FetchMailConfig {
+  string Name = 1;
+  string Username = 2;
+  string Password = 3;
+  uint32 checkInterval = 4;
+  string server = 5;
+}

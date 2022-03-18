@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package emailarchiver.archive;
+option go_package = "emailarchver/archive";
+
+
+message ArchiveEnvelope {
+  string keyIdHint = 1;
+  bytes content = 2;
+  repeated SignedLogEntry Log = 3;
+}
+
+message SignedLogEntry {
+  int64 time = 1;
+  string principal = 2;
+  EventType event = 3;
+  bytes contentChecksum = 4;
+  bytes signature = 5;
+}
+
+enum EventType {
+  UNSPECIFIED = 0;
+  CREATED = 1;
+}

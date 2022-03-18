@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package emailarchiver.email;
+option go_package = "emailarchver/email";
+
+import "google/protobuf/timestamp.proto";
+
+message EMail {
+  string messageId = 1;
+  google.protobuf.Timestamp date = 2;
+  string previousMessageId = 3;
+  Header header = 4;
+  repeated Part parts = 5;
+}
+
+message Header {
+  map<string, string> fields = 1;
+}
+
+message Part {
+  bytes raw = 1;
+}

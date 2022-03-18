@@ -1,15 +1,17 @@
-package keygen
+package keyService
 
-//go:generate  mockgen -source ../repository/keyRepository/KeyRepository.go -destination ../../mocks/keygen_mocks.go -package=mocks
+//go:generate  mockgen -source KeyRepository.go -destination ../../mocks/KeyRepository_mocks.go -package=mocks
 
 import (
 	"email-archiver-cli/mocks"
+	"email-archiver-cli/models"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNewKeyGeneration(t *testing.T) {
+
 	t.Run("When new key requested", func(t *testing.T) {
 		const mockKeyName = "MOCK_KEY_NAME"
 
@@ -19,7 +21,10 @@ func TestNewKeyGeneration(t *testing.T) {
 			mockRepository := mocks.NewMockKeyRepository(mockController)
 			mockRepository.EXPECT().Contains(mockKeyName).Return(true)
 
-			keygen, _ := NewKeygen(mockRepository)
+			keygen := KeyService{
+				keyRepository: mockRepository,
+				keyGenerator:  mockKeyGenerator,
+			}
 
 			_, err := keygen.CreateKey(mockKeyName, false)
 
@@ -31,7 +36,10 @@ func TestNewKeyGeneration(t *testing.T) {
 			mockRepository.EXPECT().Contains(mockKeyName).Return(false)
 			mockRepository.EXPECT().Persist(mockKeyName, gomock.Any())
 
-			keygen, _ := NewKeygen(mockRepository)
+			keygen := KeyService{
+				keyRepository: mockRepository,
+				keyGenerator:  mockKeyGenerator,
+			}
 
 			_, err := keygen.CreateKey(mockKeyName, false)
 
@@ -39,4 +47,8 @@ func TestNewKeyGeneration(t *testing.T) {
 		})
 
 	})
+}
+
+func mockKeyGenerator(int) (key *models.Key, err error) {
+	return
 }

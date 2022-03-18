@@ -14,7 +14,7 @@ func (sv *InitCommand) Run(ctx *kong.Context) error {
 	log.WithFields(log.Fields{}).Debug("Trying to create new Repository")
 
 	if _, err := repository.InitRepository(); err != nil {
-		if errors.Is(err, repository.RepositoryAlreadyExistsError) {
+		if errors.Is(err, repository.AlreadyExistsError) {
 			log.Error("The repository already exists. No need to init it again, just start working with it.")
 		} else {
 			log.WithFields(log.Fields{"error": err}).Error("Unexpected Error occourred")
