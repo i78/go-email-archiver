@@ -27,5 +27,11 @@ jobs:
       
     - name: Build Windows x86 binary
       run: go build -o dist/email-archiver.exe
-
-
+      
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: |
+          dist
+ 
