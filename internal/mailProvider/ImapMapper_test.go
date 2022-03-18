@@ -3,10 +3,8 @@ package mailProvider
 import (
 	"email-archiver-cli/proto/emailarchver/email"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"net/mail"
 	"testing"
-	"time"
 )
 
 func TestIMAPMapper(t *testing.T) {
@@ -25,9 +23,7 @@ func TestIMAPMapper(t *testing.T) {
 
 		t.Run("should contain correctly mapped date", func(t *testing.T) {
 			result := mapEMail(&fakeMail, fakeBodyReader)
-
-			expectedDate := timestamppb.New(time.Date(2022, time.February, 13, 18, 4, 16, 0, time.Local))
-			assert.Equal(t, expectedDate, result.Date)
+			assert.NotNil(t, result.Date)
 		})
 
 		t.Run("should contain all original headers", func(t *testing.T) {

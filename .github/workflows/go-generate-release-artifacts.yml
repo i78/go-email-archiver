@@ -1,0 +1,37 @@
+# workflow name
+name: Generate release-artifacts
+
+# on events
+on:
+  release:
+    types: 
+        - created
+
+# workflow tasks
+jobs:
+   build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+        
+    - name: Prepare
+      run: mkdir dist
+        
+    - name: Build Linux binary
+      run: go build -o dist/email-archiver
+      
+    - name: Build Windows x86 binary
+      run: go build -o dist/email-archiver.exe
+      
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: |
+          dist
+ 
